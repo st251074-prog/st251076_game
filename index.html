@@ -25,7 +25,7 @@
 
         /* 画面を漂うアニメーション用 */
         .floating-ad {
-            transition: left 2s linear, top 2s linear;
+            transition: left 1.6s ease-in-out, top 1.6s ease-in-out;
         }
 
         /* ブルースクリーン風 */
@@ -45,7 +45,7 @@
             <h1 class="text-xl font-bold text-gray-800">広告バツボタン消し <span class="text-xs text-purple-600 font-black animate-pulse">悪夢の無限ループ版</span></h1>
         </div>
         <div class="flex gap-4">
-            <div class="text-sm bg-red-50 px-3 py-1 rounded-full border border-red-200 flex items-center">
+            <div id="danger-container" class="text-sm bg-red-50 px-3 py-1 rounded-full border border-red-200 flex items-center transition-colors duration-300">
                 危険度: <span id="danger-level" class="font-bold text-red-600 ml-1">0%</span>
             </div>
             <div class="text-sm bg-yellow-50 px-3 py-1 rounded-full border border-yellow-200 flex items-center">
@@ -66,11 +66,11 @@
                 <h2 class="text-3xl font-black text-gray-800 mb-2">広告バツ消しゲーム</h2>
                 <p class="text-purple-600 font-bold mb-4">〜 悪夢の無限ループ版 〜</p>
                 <div class="bg-gray-100 p-4 rounded mb-6 text-left text-gray-700 text-sm leading-relaxed border border-gray-300">
-                    <p class="mb-2 font-bold text-red-600">【警告】難易度が凶悪化しています</p>
+                    <p class="mb-2 font-bold text-red-600">【警告】カオス度が再調整されました</p>
                     <ul class="list-disc pl-5 mb-2 text-xs font-bold text-gray-800 space-y-1">
-                        <li>広告は画面を<span class="text-red-500">動き回ります</span>。</li>
-                        <li>広告内の「閉じる」等のボタンは<span class="text-red-500">全て罠（即ペナルティ）</span>です。</li>
-                        <li>時間経過でも勝手に増殖します。</li>
+                        <li>ゲーム開始時から<span class="text-red-500">3個の広告</span>が出現します。</li>
+                        <li>スコアが伸びるほど、自動増殖スピードと広告の移動速度が<span class="text-red-500">跳ね上がります</span>。</li>
+                        <li>広告を消した際の増殖トラップ確率が上昇しました。</li>
                         <li>画面内に<span class="text-red-500 text-base">15個</span>の広告が溜まると<span class="underline">システムクラッシュ（ゲームオーバー）</span>します。</li>
                     </ul>
                 </div>
@@ -143,6 +143,7 @@
         const scoreEl = document.getElementById('score');
         const highScoreEl = document.getElementById('high-score');
         const dangerLevelEl = document.getElementById('danger-level');
+        const dangerContainer = document.getElementById('danger-container');
         const gameArea = document.getElementById('game-area');
         const startScreen = document.getElementById('start-screen');
         const startBtn = document.getElementById('start-btn');
@@ -161,14 +162,20 @@
         let moveIntervals = [];
         const MAX_ADS = 15;
 
-        // 広告のバリエーション (偽ボタンテキストを追加)
+        // 広告のバリエーション (ユーモア重視に大幅追加・変更)
         const adContents = [
-            { icon: '🎁', title: '100万人目の訪問者！', html: 'iPhone 15 Pro が当たるチャンス！', cta: '今すぐ受け取る', fakeClose: '興味ない' },
-            { icon: '💰', title: 'スマホで簡単副業', html: '1日5分タップするだけで月収100万円！？', cta: '詳細を見る', fakeClose: 'スキップ ＞' },
-            { icon: '🔥', title: '閉店セール 90%OFF', html: '高級ブランド時計が在庫処分価格！', cta: '会場へ急ぐ', fakeClose: '閉じる ×' },
-            { icon: '💊', title: '飲むだけで-10kg', html: '海外で大炎上中の激ヤセサプリ！', cta: '無料で試す', fakeClose: '× Close' },
-            { icon: '🚨', title: 'ウイルスを検出', html: 'システムが破損する恐れがあります', cta: 'スキャン開始', fakeClose: '後で通知' },
-            { icon: '👩', title: '近所の人があなたを探しています', html: 'メッセージが3件届いています', cta: 'メッセージを見る', fakeClose: '拒否する' }
+            { icon: '🎁', title: '1億万人目の訪問者！', html: 'なんと、純金製のタワシが当たるチャンス！', cta: '今すぐ受け取る', fakeClose: 'いらない' },
+            { icon: '👵', title: '母です。携帯落としました', html: '急ぎでWebMoneyカード5万円分買ってきて！', cta: 'コンビニへ走る', fakeClose: '既読スルー' },
+            { icon: '🥬', title: 'キャベツを凝視するだけ！？', html: '専門家もドン引きした謎の視力回復メソッド', cta: '詳細を見る', fakeClose: 'そんなわけない' },
+            { icon: '🧹', title: '悪役令嬢ですが...', html: 'なぜか江戸時代で畳職人やってます【1巻無料】', cta: '試し読み', fakeClose: '興味なし' },
+            { icon: '🍄', title: 'きのこ派のあなたへ！', html: 'たけのこ派を駆逐するための極秘ツール', cta: 'ダウンロード', fakeClose: '× 閉じる' },
+            { icon: '💻', title: '警告：PCから異臭を検知', html: '今すぐスキャンしないと部屋が焼き肉臭になります', cta: '消臭を開始', fakeClose: 'ファブリーズする' },
+            { icon: '😭', title: 'クリックしてください！', html: '今月のノルマがやばいんです！店長に怒られる！', cta: '助けてあげる', fakeClose: '見捨てる' },
+            { icon: '💪', title: '1日3秒でムキムキ', html: '息を止めるだけで腹筋がバキバキに割れる魔法の粉', cta: '定期購入する', fakeClose: 'スキップ' },
+            { icon: '👽', title: '宇宙人から着信中...', html: '「ワレワレハ、サポートセンターダ」', cta: '電話に出る', fakeClose: '着信拒否' },
+            { icon: '⏬', title: 'DOWNLOAD.exe', html: 'ファイルサイズ: 0バイト (絶対に安全です)', cta: '今すぐDL', fakeClose: 'Fake Close' },
+            { icon: '🐱', title: '猫がキーボードに乗っています', html: 'fhjdkalshfjkdlas（※猫からのメッセージ）', cta: 'ちゅ〜るをあげる', fakeClose: 'どかす' },
+            { icon: '💸', title: 'スマホで簡単マイナス収入', html: '1日5分タップするだけで毎月10万円引き落とし！', cta: '口座を登録', fakeClose: '閉じる ×' }
         ];
 
         // ゲーム初期化
@@ -182,9 +189,10 @@
             isPlaying = true;
             
             clearAllAds();
-            spawnAds(1);
+            // 最初から手応えを感じられるように、初期配置を 3個 に変更
+            spawnAds(3);
             
-            // 自動増殖ループ開始 (最初は3秒ごと、スコアが上がると短くなる)
+            // 自動増殖ループ開始
             startAutoSpawn();
         }
 
@@ -194,10 +202,16 @@
             const dangerPercent = Math.min(100, Math.floor((currentAds / MAX_ADS) * 100));
             dangerLevelEl.textContent = `${dangerPercent}%`;
             
-            if(dangerPercent > 70) {
-                dangerLevelEl.classList.add('animate-pulse');
+            // 危険度に応じた緊迫感のある背景色演出
+            if (dangerPercent > 70) {
+                dangerContainer.className = "text-sm bg-red-600 text-white px-3 py-1 rounded-full border border-red-700 flex items-center animate-pulse";
+                dangerLevelEl.className = "font-bold text-yellow-300 ml-1";
+            } else if (dangerPercent > 40) {
+                dangerContainer.className = "text-sm bg-orange-100 text-orange-800 px-3 py-1 rounded-full border border-orange-300 flex items-center";
+                dangerLevelEl.className = "font-bold text-orange-600 ml-1";
             } else {
-                dangerLevelEl.classList.remove('animate-pulse');
+                dangerContainer.className = "text-sm bg-red-50 text-gray-700 px-3 py-1 rounded-full border border-red-200 flex items-center";
+                dangerLevelEl.className = "font-bold text-red-600 ml-1";
             }
         }
 
@@ -206,11 +220,11 @@
             clearInterval(autoSpawnInterval);
             if (!isPlaying) return;
             
-            // スコアに応じて増殖間隔が短くなる (最小800ms)
-            const intervalTime = Math.max(800, 3000 - (score * 50));
+            // 【再調整】スコアに応じてよりアグレッシブに短縮 (最速800msまで加速)
+            const intervalTime = Math.max(800, 2800 - (score * 80));
             
             autoSpawnInterval = setInterval(() => {
-                if (isPlaying && !penaltyScreen.classList.contains('hidden') === false) {
+                if (isPlaying && penaltyScreen.classList.contains('hidden')) {
                     spawnAds(1);
                 }
             }, intervalTime);
@@ -287,20 +301,21 @@
                     adDiv.remove();
                     updateScoreUI();
 
-                    // --- 追加: 広告が0個になった時の「休ませない」処理 ---
+                    // --- 広告が0個になった時の「休ませない」処理 ---
                     const remainingAds = document.querySelectorAll('.ad-instance').length;
                     if (remainingAds === 0 && isPlaying) {
-                        // 一瞬だけ安堵させてから、確定で複数個投下する
                         setTimeout(() => {
-                            const spawnCount = Math.floor(Math.random() * 3) + 2; // 2〜4個
+                            // 絶望感を煽るために確定で「2〜3個」即降らせる
+                            const spawnCount = Math.floor(Math.random() * 2) + 2; 
                             spawnAds(spawnCount);
-                        }, 300);
+                        }, 250);
                     }
                 }, 200);
 
-                // 増殖判定 (確率で即座に増える罠)
-                if (Math.random() < 0.3) {
-                    const spawnCount = Math.floor(Math.random() * 3) + 2; // 2〜4個
+                // 【トラップ】消した時にも一定確率で分裂する罠 (確率を25%に引き上げ、高スコアほど凶悪に)
+                const splitChance = 0.25 + (score * 0.005);
+                if (Math.random() < Math.min(0.5, splitChance)) {
+                    const spawnCount = Math.floor(Math.random() * 2) + 1; // 1〜2個
                     spawnAds(spawnCount);
                 }
             });
@@ -332,14 +347,14 @@
             element.style.left = `${randomX}px`;
             element.style.top = `${randomY}px`;
             
-            // 少しだけ重なり順をランダムにしてカオス感を出す
+            // 重なり順をランダムにして立体的なカオス感を出す
             element.style.zIndex = Math.floor(Math.random() * 100);
         }
 
         // 広告をゆっくり動かすロジック
         function startMovingAd(ad) {
-            // スコアに応じて動きが頻繁に/速くなる
-            const moveTime = Math.max(1000, 3000 - (score * 30));
+            // 【再調整】スコアが増えると動きが格段にスピードアップする (最速1秒ごとにワープ)
+            const moveTime = Math.max(1000, 2600 - (score * 60));
             
             const interval = setInterval(() => {
                 if(document.body.contains(ad) && isPlaying && penaltyScreen.classList.contains('hidden')) {
@@ -376,9 +391,10 @@
         backBtn.addEventListener('click', () => {
             penaltyScreen.classList.add('hidden');
             
-            // ペナルティから復帰した時は罰として増殖
-            const punishCount = Math.floor(Math.random() * 2) + 2;
-            spawnAds(punishCount);
+            // ペナルティから復帰した時は、スコアに応じた数のペナルティ広告をスポーン (1〜3個)
+            const basePunish = Math.floor(Math.random() * 2) + 1; // 1〜2
+            const extraPunish = score > 10 ? 1 : 0; // スコア10を超えると+1個追加
+            spawnAds(basePunish + extraPunish);
             
             // 戻った直後にゲームオーバー判定しないよう少し待つ
             setTimeout(checkGameOver, 500);
@@ -407,7 +423,7 @@
         startBtn.addEventListener('click', initGame);
         restartBtn.addEventListener('click', initGame);
 
-        // ウィンドウリサイズ時に広告が画面外に出ないようにする（簡易対応）
+        // ウィンドウリサイズ時に広告が画面外に出ないようにする
         window.addEventListener('resize', () => {
             if(isPlaying) {
                 document.querySelectorAll('.ad-instance').forEach(ad => setRandomPosition(ad));
